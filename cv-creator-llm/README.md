@@ -1,10 +1,10 @@
 # 🤖 CV Creator using LLMs
 
-An AI-powered resume creation and optimization system that uses Large Language Models (LLMs) to generate ATS-friendly, job-tailored CVs. Built with **FastAPI**, **Gemma 2B**, and **Llama 3.2 Vision 11B** via Ollama.
+An AI-powered resume creation and optimization system that uses LLMs to generate ATS-friendly, job-tailored CVs. This is built with **FastAPI**, **Gemma 2B**, and **Llama 3.2 Vision 11B** via Ollama.
 
 ## 🎯 Project Overview
 
-This capstone project demonstrates how modern open-source LLMs can automate and optimize the resume creation process. The system extracts information from existing resumes, analyzes job descriptions, and generates perfectly tailored CVs with ATS optimization.
+This capstone project demonstrates how modern open-source LLMs can create and optimize the resume creation process. The system extracts information from existing resumes, analyzes job descriptions, and generates perfectly tailored CVs with ATS optimization.
 
 ### Key Features
 
