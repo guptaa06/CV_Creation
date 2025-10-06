@@ -384,4 +384,4 @@ IIITK Computer Vision Course
 
 For questions or issues, please check the GitHub issues or create a new one.
 
-**Happy Resume Building! 🚀**
+
