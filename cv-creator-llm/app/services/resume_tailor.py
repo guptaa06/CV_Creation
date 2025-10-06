@@ -69,7 +69,7 @@ class ResumeTailor:
 
         # 3. Reorder and optimize skills
         tailored_data.skills = self._optimize_skills(
-            tailored_data.skills, job_requirements
+            tailored_data.skills, job_requirements, optimization_level
         )
         customizations.append("Reordered skills to prioritize job-relevant keywords")
 
@@ -173,13 +173,28 @@ Return ONLY the optimized summary, no additional text."""
     def _optimize_experience(
         self, experiences: List, job_requirements: JobRequirements, optimization_level: str
     ) -> List:
-        """Optimize work experience descriptions"""
+        """Optimize work experience descriptions based on optimization level"""
 
-        system_prompt = """You are an expert at writing impactful, ATS-optimized resume bullet points. Use strong action verbs, include quantifiable achievements, and incorporate relevant keywords naturally."""
+        # Define different levels of optimization
+        if optimization_level == "minimal":
+            system_prompt = """You are a resume editor. Make light, natural improvements to bullet points while preserving the original content and style."""
+            experience_limit = 2  # Only optimize first 2 jobs
+            num_bullets = "4-5"
+            temperature = 0.7
+        elif optimization_level == "aggressive":
+            system_prompt = """You are an expert ATS optimizer. Aggressively rewrite bullet points to maximize keyword matching and impact. Include as many relevant job keywords as naturally possible."""
+            experience_limit = len(experiences)  # Optimize all
+            num_bullets = "5-7"
+            temperature = 0.5
+        else:  # balanced
+            system_prompt = """You are an expert at writing impactful, ATS-optimized resume bullet points. Use strong action verbs, include quantifiable achievements, and incorporate relevant keywords naturally."""
+            experience_limit = min(3, len(experiences))  # Optimize first 3
+            num_bullets = "4-6"
+            temperature = 0.6
 
         for i, exp in enumerate(experiences):
-            # Focus more on recent experience
-            if optimization_level == "minimal" and i > 2:
+            # Limit based on optimization level
+            if i >= experience_limit:
                 continue
 
             prompt = f"""Optimize these work responsibilities for a {job_requirements.job_title} position:
@@ -198,14 +213,14 @@ Rewrite responsibilities to:
 3. Incorporate relevant job keywords naturally
 4. Highlight skills that match the target role
 5. Keep each bullet point concise (1-2 lines)
-6. Return 4-6 most impactful bullet points
+6. Return {num_bullets} most impactful bullet points
 
 Return as a JSON array of strings: ["bullet 1", "bullet 2", ...]
 Return ONLY the JSON array."""
 
             try:
                 optimized = self.llm.generate_structured(
-                    prompt=prompt, system_prompt=system_prompt, temperature=0.6,
+                    prompt=prompt, system_prompt=system_prompt, temperature=temperature,
                     model=settings.GENERATION_MODEL
                 )
 
@@ -221,9 +236,9 @@ Return ONLY the JSON array."""
         return experiences
 
     def _optimize_skills(
-        self, skills: List[str], job_requirements: JobRequirements
+        self, skills: List[str], job_requirements: JobRequirements, optimization_level: str
     ) -> List[str]:
-        """Reorder and optimize skills list"""
+        """Reorder and optimize skills list based on optimization level"""
 
         # Combine required and preferred skills
         job_skills = job_requirements.required_skills + job_requirements.preferred_skills
@@ -239,23 +254,36 @@ Return ONLY the JSON array."""
             else:
                 other_skills.append(skill)
 
-        # Add missing required skills from job if candidate likely has them
-        # (based on experience/education)
+        # Add missing required skills based on optimization level
         additional_skills = []
-        for req_skill in job_requirements.required_skills:
-            if req_skill.lower() not in [s.lower() for s in skills]:
-                # Only add if it's a common/transferable skill
-                if any(
-                    keyword in req_skill.lower()
-                    for keyword in ["agile", "scrum", "git", "communication", "leadership"]
-                ):
+
+        if optimization_level == "minimal":
+            # Only add exact matches from required skills
+            for req_skill in job_requirements.required_skills[:3]:
+                if req_skill.lower() not in [s.lower() for s in skills]:
                     additional_skills.append(req_skill)
+        elif optimization_level == "aggressive":
+            # Add all missing required and some preferred skills
+            for req_skill in job_requirements.required_skills + job_requirements.preferred_skills[:5]:
+                if req_skill.lower() not in [s.lower() for s in skills]:
+                    additional_skills.append(req_skill)
+        else:  # balanced
+            # Add missing required skills if they seem transferable
+            for req_skill in job_requirements.required_skills:
+                if req_skill.lower() not in [s.lower() for s in skills]:
+                    # Only add if it's a common/transferable skill
+                    if any(
+                        keyword in req_skill.lower()
+                        for keyword in ["agile", "scrum", "git", "communication", "leadership", "python", "java", "sql", "aws"]
+                    ):
+                        additional_skills.append(req_skill)
 
         # Combine: matching skills first, then other skills, then additional
         optimized_skills = matching_skills + other_skills + additional_skills
 
-        # Limit to reasonable number
-        return optimized_skills[:30]
+        # Limit based on optimization level
+        max_skills = 35 if optimization_level == "aggressive" else 30
+        return optimized_skills[:max_skills]
 
     def _optimize_projects(self, projects: List, job_requirements: JobRequirements) -> List:
         """Optimize project descriptions"""
