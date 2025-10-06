@@ -1,5 +1,5 @@
 """
-Document extraction utilities for PDF and DOCX files
+Document extraction utilities for PDF, DOCX, and TXT files
 """
 import pdfplumber
 from docx import Document
@@ -12,6 +12,40 @@ logger = logging.getLogger(__name__)
 
 class DocumentExtractor:
     """Extract text from various document formats"""
+
+    @staticmethod
+    def extract_from_txt(file_path: str) -> str:
+        """
+        Extract text from TXT file
+
+        Args:
+            file_path: Path to TXT file
+
+        Returns:
+            Extracted text content
+        """
+        try:
+            # Try different encodings
+            encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+
+            for encoding in encodings:
+                try:
+                    with open(file_path, 'r', encoding=encoding) as f:
+                        text = f.read()
+                    logger.info(f"Successfully extracted {len(text)} characters from TXT using {encoding} encoding")
+                    return text.strip()
+                except UnicodeDecodeError:
+                    continue
+
+            # If all encodings fail, read as binary and decode with errors ignored
+            with open(file_path, 'rb') as f:
+                text = f.read().decode('utf-8', errors='ignore')
+            logger.info(f"Successfully extracted {len(text)} characters from TXT (with error handling)")
+            return text.strip()
+
+        except Exception as e:
+            logger.error(f"Error extracting TXT: {str(e)}")
+            raise ValueError(f"Failed to extract TXT: {str(e)}")
 
     @staticmethod
     def extract_from_pdf(file_path: str) -> str:
@@ -91,6 +125,8 @@ class DocumentExtractor:
             return cls.extract_from_pdf(file_path)
         elif file_path_lower.endswith('.docx') or file_path_lower.endswith('.doc'):
             return cls.extract_from_docx(file_path)
+        elif file_path_lower.endswith('.txt'):
+            return cls.extract_from_txt(file_path)
         else:
             raise ValueError(f"Unsupported file format: {file_path}")
 

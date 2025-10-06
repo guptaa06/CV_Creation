@@ -20,6 +20,7 @@ from app.models.schemas import (
     ResumeResponse,
     RevisionRequest,
     EvaluationMetrics,
+    ATSAnalysis,
 )
 from app.services import (
     llm_service,
@@ -171,7 +172,7 @@ async def upload_resume(file: UploadFile = File(...)):
         if file_ext not in settings.ALLOWED_EXTENSIONS:
             raise HTTPException(
                 status_code=400,
-                detail=f"File type {file_ext} not allowed. Use PDF or DOCX.",
+                detail=f"File type {file_ext} not allowed. Use PDF, DOCX, or TXT.",
             )
 
         # Save uploaded file
@@ -528,8 +529,26 @@ async def get_comparison():
         else:
             tailored_overall_score = round(tailored_score, 2)
 
-        # Get evaluation if available - use tailored score for quality
-        tailored_quality = round(tailored_score, 2)
+        # Calculate quality using evaluator
+        try:
+            metrics = evaluator.evaluate(
+                original_resume=original,
+                tailored_resume=tailored,
+                job_requirements=job_req,
+                ats_analysis=ats_analysis if ats_analysis else ATSAnalysis(
+                    overall_score=tailored_score,
+                    keyword_match_score=tailored_score,
+                    matched_keywords=tailored_matched,
+                    missing_keywords=[kw for kw in job_keywords_lower if kw not in tailored_matched],
+                    suggestions=[],
+                    format_compliance=True,
+                    section_coverage={}
+                ),
+            )
+            tailored_quality = metrics.overall_quality
+        except Exception as e:
+            logger.warning(f"Error calculating quality: {str(e)}")
+            tailored_quality = round(tailored_score, 2)
 
         return {
             "before": {
