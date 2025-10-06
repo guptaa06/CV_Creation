@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Creator using LLMs</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 CV Creator using LLMs</h1>
+            <p class="subtitle">Create ATS-optimized resumes tailored to your dream job</p>
+            <div class="model-selector-container">
+                <div class="model-selector">
+                    <label for="parsing-model-select">📄 Resume Parsing Model:</label>
+                    <select id="parsing-model-select" class="model-dropdown">
+                        <option value="">Loading models...</option>
+                    </select>
+                    <span id="parsing-model-status" class="model-status"></span>
+                </div>
+                <div class="model-selector">
+                    <label for="generation-model-select">✨ Resume Generation Model:</label>
+                    <select id="generation-model-select" class="model-dropdown">
+                        <option value="">Loading models...</option>
+                    </select>
+                    <span id="generation-model-status" class="model-status"></span>
+                </div>
+                <button id="refresh-models-btn" class="btn-icon" title="Refresh models">🔄</button>
+            </div>
+        </header>
+
+        <div class="progress-steps">
+            <div class="step active" id="step1">
+                <div class="step-number">1</div>
+                <div class="step-label">Upload Resume</div>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-number">2</div>
+                <div class="step-label">Job Description</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-number">3</div>
+                <div class="step-label">Generate</div>
+            </div>
+        </div>
+
+        <main>
+            <!-- Step 1: Upload Resume -->
+            <div class="section" id="upload-section">
+                <h2>📄 Step 1: Upload Your Resume</h2>
+                <div class="upload-area" id="upload-area">
+                    <input type="file" id="resume-file" accept=".pdf,.docx,.doc" hidden>
+                    <label for="resume-file" class="upload-label">
+                        <span class="upload-icon">📁</span>
+                        <span class="upload-text">Click to upload or drag & drop</span>
+                        <span class="upload-subtext">PDF or DOCX (Max 10MB)</span>
+                    </label>
+                </div>
+                <div id="resume-status" class="status-message"></div>
+                <div id="resume-preview" class="preview-box hidden"></div>
+            </div>
+
+            <!-- Step 2: Job Description -->
+            <div class="section hidden" id="job-section">
+                <h2>💼 Step 2: Enter Job Description</h2>
+                <textarea
+                    id="job-description"
+                    placeholder="Paste the job description here..."
+                    rows="10"
+                ></textarea>
+                <button id="parse-job-btn" class="btn btn-primary">Parse Job Requirements</button>
+                <div id="job-status" class="status-message"></div>
+                <div id="job-preview" class="preview-box hidden"></div>
+            </div>
+
+            <!-- Step 3: Generate Resume -->
+            <div class="section hidden" id="generate-section">
+                <h2>✨ Step 3: Generate Tailored Resume</h2>
+
+                <div class="options-grid">
+                    <div class="option-group">
+                        <label for="format-select">Output Format:</label>
+                        <select id="format-select">
+                            <option value="pdf">PDF</option>
+                            <option value="docx">DOCX</option>
+                        </select>
+                    </div>
+
+                    <div class="option-group">
+                        <label for="optimization-select">Optimization Level:</label>
+                        <select id="optimization-select">
+                            <option value="minimal">Minimal - Light touch-ups</option>
+                            <option value="balanced" selected>Balanced - Recommended</option>
+                            <option value="aggressive">Aggressive - Maximum optimization</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button id="generate-btn" class="btn btn-success">🚀 Generate Resume</button>
+                <div id="generate-status" class="status-message"></div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="section hidden" id="results-section">
+                <h2>📊 Results & Analysis</h2>
+
+                <div class="results-grid">
+                    <!-- ATS Compliance Score -->
+                    <div class="result-card-container">
+                        <div class="result-card-header">ATS Compliance Score</div>
+                        <div class="result-card-comparison">
+                            <div class="result-half">
+                                <div class="result-label">Before</div>
+                                <div class="score-display-small" id="ats-score-before">-</div>
+                                <div class="score-bar-small">
+                                    <div class="score-fill" id="ats-score-before-fill"></div>
+                                </div>
+                            </div>
+                            <div class="result-arrow">→</div>
+                            <div class="result-half highlight">
+                                <div class="result-label">After</div>
+                                <div class="score-display-small" id="ats-score-after">-</div>
+                                <div class="score-bar-small">
+                                    <div class="score-fill" id="ats-score-after-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="result-improvement" id="ats-improvement">-</div>
+                    </div>
+
+                    <!-- Keyword Match -->
+                    <div class="result-card-container">
+                        <div class="result-card-header">Keyword Match</div>
+                        <div class="result-card-comparison">
+                            <div class="result-half">
+                                <div class="result-label">Before</div>
+                                <div class="score-display-small" id="keyword-score-before">-</div>
+                                <div class="score-bar-small">
+                                    <div class="score-fill" id="keyword-score-before-fill"></div>
+                                </div>
+                            </div>
+                            <div class="result-arrow">→</div>
+                            <div class="result-half highlight">
+                                <div class="result-label">After</div>
+                                <div class="score-display-small" id="keyword-score-after">-</div>
+                                <div class="score-bar-small">
+                                    <div class="score-fill" id="keyword-score-after-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="result-improvement" id="keyword-improvement">-</div>
+                    </div>
+
+                    <!-- Overall Quality -->
+                    <div class="result-card-container">
+                        <div class="result-card-header">Overall Quality</div>
+                        <div class="result-card-comparison">
+                            <div class="result-half">
+                                <div class="result-label">Before</div>
+                                <div class="score-display-small" id="quality-score-before">-</div>
+                                <div class="score-bar-small">
+                                    <div class="score-fill" id="quality-score-before-fill"></div>
+                                </div>
+                            </div>
+                            <div class="result-arrow">→</div>
+                            <div class="result-half highlight">
+                                <div class="result-label">After</div>
+                                <div class="score-display-small" id="quality-score-after">-</div>
+                                <div class="score-bar-small">
+                                    <div class="score-fill" id="quality-score-after-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="result-improvement" id="quality-improvement">-</div>
+                    </div>
+                </div>
+
+                <!-- Before/After Comparison -->
+                <div class="comparison-section">
+                    <h3>🔄 Before & After Comparison</h3>
+
+                    <div class="comparison-grid">
+                        <div class="comparison-card">
+                            <h4>📄 Original Resume</h4>
+                            <div class="comparison-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Skills:</span>
+                                    <span class="stat-value" id="before-skills">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Keywords Matched:</span>
+                                    <span class="stat-value" id="before-keywords">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Match Score:</span>
+                                    <span class="stat-value" id="before-score">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="comparison-arrow">➜</div>
+
+                        <div class="comparison-card highlight">
+                            <h4>✨ Tailored Resume</h4>
+                            <div class="comparison-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Skills:</span>
+                                    <span class="stat-value" id="after-skills">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Keywords Matched:</span>
+                                    <span class="stat-value" id="after-keywords">-</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Match Score:</span>
+                                    <span class="stat-value" id="after-score">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="improvement-banner" id="improvement-banner">
+                        <span class="improvement-icon">📈</span>
+                        <span class="improvement-text" id="improvement-text">-</span>
+                    </div>
+
+                    <div class="changes-details">
+                        <div class="change-section">
+                            <h4>➕ Skills Added</h4>
+                            <div class="keyword-list" id="skills-added"></div>
+                        </div>
+                        <div class="change-section">
+                            <h4>🆕 New Keywords Matched</h4>
+                            <div class="keyword-list" id="new-keywords"></div>
+                        </div>
+                        <div class="change-section">
+                            <h4>🔧 Customizations Made</h4>
+                            <ul id="customizations-list"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analysis-details">
+                    <h3>📈 Detailed Analysis</h3>
+                    <div id="matched-keywords" class="detail-section">
+                        <h4>✅ Matched Keywords</h4>
+                        <div class="keyword-list" id="matched-list"></div>
+                    </div>
+                    <div id="missing-keywords" class="detail-section">
+                        <h4>❌ Missing Keywords</h4>
+                        <div class="keyword-list" id="missing-list"></div>
+                    </div>
+                    <div id="recommendations" class="detail-section">
+                        <h4>💡 Recommendations</h4>
+                        <ul id="recommendations-list"></ul>
+                    </div>
+                </div>
+
+                <!-- Editable Resume Section -->
+                <div class="edit-resume-section">
+                    <div class="edit-header">
+                        <h3>✏️ Edit Generated Resume</h3>
+                        <button id="recompare-btn" class="btn btn-primary">🔄 Recompare & Update Analysis</button>
+                    </div>
+
+                    <div class="resume-document-editor">
+                        <textarea id="resume-content" placeholder="Your generated resume will appear here for editing..."></textarea>
+                    </div>
+                </div>
+
+                <div class="download-section">
+                    <button id="download-btn" class="btn btn-success">📥 Download Resume</button>
+                    <button id="restart-btn" class="btn btn-secondary">🔄 Start Over</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Powered by Gemma 2B & Llama 3.2 Vision via Ollama | Built with FastAPI</p>
+        </footer>
+    </div>
+
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <p class="loading-text">Processing...</p>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+# FastAPI and Web Framework
+fastapi
+uvicorn[standard]
+python-multipart
+jinja2
+aiofiles
+
+# LLM Integration
+langchain
+langchain-community
+ollama
+requests
+
+# Document Processing
+pdfplumber
+python-docx
+PyPDF2
+pypandoc
+
+# Document Generation
+reportlab
+docx2pdf
+markdown
+
+# Data Processing
+pydantic
+pydantic-settings
+python-dotenv
+
+# Utilities
+regex
+nltk
+spacy
+
+# Testing
+pytest
+pytest-asyncio
+httpx
+
+# Additional Tools
+pillow
