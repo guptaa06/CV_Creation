@@ -34,7 +34,7 @@ class Settings(BaseSettings):
 
     # File Upload Settings
     MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
-    ALLOWED_EXTENSIONS: set = {".pdf", ".docx", ".doc"}
+    ALLOWED_EXTENSIONS: set = {".pdf", ".docx", ".doc", ".txt"}
     UPLOAD_DIR: str = "uploads"
     OUTPUT_DIR: str = "outputs"
 

@@ -172,7 +172,7 @@ async def upload_resume(file: UploadFile = File(...)):
         if file_ext not in settings.ALLOWED_EXTENSIONS:
             raise HTTPException(
                 status_code=400,
-                detail=f"File type {file_ext} not allowed. Use PDF or DOCX.",
+                detail=f"File type {file_ext} not allowed. Use PDF, DOCX, or TXT.",
             )
 
         # Save uploaded file
