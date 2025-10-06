@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     """Application settings"""
 
     # Application
-    APP_NAME: str = "CV Creator using LLMs"
+    APP_NAME: str = "Smart CV Builder"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
 
